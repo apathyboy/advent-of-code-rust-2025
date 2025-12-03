@@ -35,33 +35,28 @@ fn has_pattern_repeated_twice(n: u64) -> bool {
 }
 
 fn has_repeating_pattern(n: u64) -> bool {
-    let len = num_digits(n);
+    let len = num_digits(n) as usize;
+    let pow10_len = POW10[len]; // assuming POW10[i] = 10^i as u64
 
     for sub_len in 1..=len / 2 {
         if !len.is_multiple_of(sub_len) {
             continue;
         }
 
-        let len = len as usize;
-        let sub_len = sub_len as usize;
-        let k = len / sub_len;
-
-        // 10^(len - sub_len)
-        let pow10_tail = POW10[len - sub_len];
-        // 10^sub_len
         let pow10_sub = POW10[sub_len];
 
-        // Extract first sub_len digits as the pattern
-        let pattern = n / pow10_tail;
+        // First sub_len digits as the pattern
+        let pattern = n / POW10[len - sub_len];
 
-        // Reconstruct n by repeating pattern k times
-        let mut acc = 0u64;
-        for _ in 0..k {
-            acc = acc * pow10_sub + pattern;
-        }
+        // Geometric series: 1 + r + r^2 + ... + r^(k-1),
+        // where r = 10^sub_len and k = len / sub_len.
+        let multiplier = (pow10_len - 1) / (pow10_sub - 1);
 
-        if acc == n {
-            return true;
+        // Avoid overflow just in case (even though any valid n must fit in u64)
+        if let Some(acc) = pattern.checked_mul(multiplier) {
+            if acc == n {
+                return true;
+            }
         }
     }
 
