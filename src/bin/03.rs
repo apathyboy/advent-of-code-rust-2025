@@ -1,45 +1,59 @@
 advent_of_code::solution!(3);
 
-fn find_largest_number(numbers: &str) -> u32 {
-    let numbers2: Vec<u32> = numbers.chars().map(|n| n.to_digit(10).unwrap()).collect();
-
-    // find the first largest number
-    let mut largest = 0;
-    for &number in &numbers2[..numbers2.len() - 1] {
-        if number > largest {
-            largest = number;
-        }
+fn max_digit_subsequence(s: &str, k: usize) -> Option<String> {
+    let n = s.len();
+    if k > n {
+        return None;
     }
 
-    // find the second largest number that appears after the first largest number
-    let mut second_largest = 0;
-    let mut found_largest = false;
-    for &number in &numbers2 {
-        if !found_largest && number == largest {
-            found_largest = true;
-            continue;
+    let mut stack: Vec<u8> = Vec::with_capacity(n);
+    let mut to_remove = n - k; // how many digits we are allowed to drop
+
+    for b in s.bytes() {
+        // While the stack's last digit is smaller than the current digit
+        // and we still can remove digits, pop to make number larger.
+        while to_remove > 0 && !stack.is_empty() && *stack.last().unwrap() < b {
+            stack.pop();
+            to_remove -= 1;
         }
-        if found_largest && number > second_largest {
-            second_largest = number;
-        }
+        stack.push(b);
     }
 
-    //let num = largest * 10 + second_largest;
-    //println!(
-    //    "str: {}, largest: {}, second_largest: {}, num: {}",
-    //    numbers, largest, second_largest, num
-    //);
-    largest * 10 + second_largest
+    // We may still have more digits than needed if we didn't remove enough.
+    stack.truncate(k);
+
+    // Safe because input is ASCII digits.
+    Some(String::from_utf8(stack).unwrap())
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let total_joltage: u32 = input.lines().map(find_largest_number).sum();
+    let total_joltage: u64 = input
+        .lines()
+        .map(|line| {
+            if let Some(subseq) = max_digit_subsequence(line, 2) {
+                subseq.parse::<u64>().unwrap()
+            } else {
+                0
+            }
+        })
+        .sum();
 
-    Some(total_joltage as u64)
+    Some(total_joltage)
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let total_joltage: u64 = input
+        .lines()
+        .map(|line| {
+            if let Some(subseq) = max_digit_subsequence(line, 12) {
+                subseq.parse::<u64>().unwrap()
+            } else {
+                0
+            }
+        })
+        .sum();
+
+    Some(total_joltage as u64)
 }
 
 #[cfg(test)]
