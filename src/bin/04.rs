@@ -1,21 +1,21 @@
 advent_of_code::solution!(4);
 
-fn is_accessible(map: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
-    // count all 8 directions for "@"
-    let directions = [
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1),
-    ];
+// count all 8 directions for "@"
+const NEIGHBORS: [(isize, isize); 8] = [
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+    (0, -1),
+    (0, 1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+];
 
+fn is_accessible(map: &[Vec<char>], x: usize, y: usize) -> bool {
     // if fewer than 4 direcitons have "@" return true else false
     let mut count = 0;
-    for (dx, dy) in directions.iter() {
+    for (dx, dy) in NEIGHBORS.iter() {
         let nx = x as isize + dx;
         let ny = y as isize + dy;
         if nx >= 0
@@ -36,20 +36,17 @@ pub fn part_one(input: &str) -> Option<u64> {
         .map(|line| line.chars().collect::<Vec<char>>())
         .collect::<Vec<Vec<char>>>();
 
-    let width = map[0].len();
-    let height = map.len();
+    let mut accessible_positions = 0;
 
-    let mut accessible_positions = Vec::new();
-
-    for y in 0..height {
-        for x in 0..width {
+    for y in 0..map.len() {
+        for x in 0..map[0].len() {
             if map[y][x] != '.' && is_accessible(&map, x, y) {
-                accessible_positions.push((x, y));
+                accessible_positions += 1;
             }
         }
     }
 
-    Some(accessible_positions.len() as u64)
+    Some(accessible_positions)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
@@ -58,18 +55,15 @@ pub fn part_two(input: &str) -> Option<u64> {
         .map(|line| line.chars().collect::<Vec<char>>())
         .collect::<Vec<Vec<char>>>();
 
-    let width = map[0].len();
-    let height = map.len();
-
-    let mut accessible_positions = Vec::new();
+    let mut accessible_positions = 0;
 
     let mut changed = true;
     while changed {
         changed = false;
-        for y in 0..height {
-            for x in 0..width {
+        for y in 0..map.len() {
+            for x in 0..map[0].len() {
                 if map[y][x] != '.' && is_accessible(&map, x, y) {
-                    accessible_positions.push((x, y));
+                    accessible_positions += 1;
                     map[y][x] = '.';
                     changed = true;
                 }
@@ -77,7 +71,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         }
     }
 
-    Some(accessible_positions.len() as u64)
+    Some(accessible_positions)
 }
 
 #[cfg(test)]
