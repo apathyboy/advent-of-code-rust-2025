@@ -26,6 +26,10 @@ fn is_accessible(map: &[Vec<char>], x: usize, y: usize) -> bool {
         {
             count += 1;
         }
+
+        if count > 4 {
+            return false;
+        }
     }
     count < 4
 }
