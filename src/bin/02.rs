@@ -53,10 +53,10 @@ fn has_repeating_pattern(n: u64) -> bool {
         let multiplier = (pow10_len - 1) / (pow10_sub - 1);
 
         // Avoid overflow just in case (even though any valid n must fit in u64)
-        if let Some(acc) = pattern.checked_mul(multiplier) {
-            if acc == n {
-                return true;
-            }
+        if let Some(acc) = pattern.checked_mul(multiplier)
+            && acc == n
+        {
+            return true;
         }
     }
 

@@ -53,7 +53,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         })
         .sum();
 
-    Some(total_joltage as u64)
+    Some(total_joltage)
 }
 
 #[cfg(test)]

@@ -10,7 +10,7 @@ pub fn part_one(input: &str) -> Option<u64> {
             let start: u64 = parts[0].trim().parse().ok()?;
             let end: u64 = parts[1].trim().parse().ok()?;
             id_ranges.push((start, end));
-        } else if line.len() > 0 {
+        } else if !line.is_empty() {
             let id: u64 = line.trim().parse().ok()?;
             ids.push(id);
         }
