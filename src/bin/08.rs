@@ -36,6 +36,111 @@ fn all_pairs_sorted(points: &[IVec3]) -> Vec<((usize, usize), i64)> {
     pairs.sort_by_key(|&(_, d2)| d2);
     pairs
 }
+#[derive(Clone, Debug)]
+struct Position {
+    x: u64,
+    y: u64,
+    z: u64,
+}
+
+impl From<&str> for Position {
+    fn from(value: &str) -> Self {
+        let mut coords = value.split(',').map(|coord| coord.parse().unwrap());
+
+        Position {
+            x: coords.next().unwrap(),
+            y: coords.next().unwrap(),
+            z: coords.next().unwrap(),
+        }
+    }
+}
+
+impl Position {
+    fn distance(&self, other: &Position) -> u64 {
+        self.x.abs_diff(other.x).pow(2)
+            + self.y.abs_diff(other.y).pow(2)
+            + self.z.abs_diff(other.z).pow(2)
+    }
+}
+
+struct Node {
+    parent: usize,
+    size: usize,
+}
+
+struct Dsu {
+    nodes: Vec<Node>,
+}
+
+impl Dsu {
+    fn new(len: usize) -> Self {
+        Self {
+            nodes: (0..len).map(|parent| Node { parent, size: 1 }).collect(),
+        }
+    }
+
+    fn parent(&mut self, mut x: usize) -> usize {
+        loop {
+            // get parent
+            let parent = self.nodes[x].parent;
+            // reached top most parent
+            if parent == x {
+                break parent;
+            }
+            // update parent
+            self.nodes[x].parent = self.nodes[parent].parent;
+            // update x
+            x = parent;
+        }
+    }
+
+    fn add_pair(&mut self, u: usize, v: usize) -> usize {
+        let (mut pu, mut pv) = (self.parent(u), self.parent(v));
+
+        // same parent => same subset
+        if pu == pv {
+            return self.nodes[pu].size;
+        }
+
+        // make sure pu is bigger than pv
+        if self.nodes[pu].size < self.nodes[pv].size {
+            std::mem::swap(&mut pu, &mut pv);
+        }
+
+        self.nodes[pv].parent = pu;
+        self.nodes[pu].size += self.nodes[pv].size;
+        self.nodes[pu].size
+    }
+}
+
+fn get_closest_pairs<const N: usize>(boxes: &[Position]) -> Vec<(usize, usize, u64)> {
+    // (start_idx, end_idx, distance)
+    let mut pairs: Vec<(usize, usize, u64)> = Vec::with_capacity(N);
+
+    let mut iter = (0..boxes.len()).flat_map(|i| (i + 1..boxes.len()).map(move |j| (i, j)));
+
+    for _ in 0..N {
+        let (i, j) = iter.next().unwrap();
+        let d = boxes[i].distance(&boxes[j]);
+        pairs.push((i, j, d));
+    }
+
+    pairs.sort_unstable_by_key(|(_, _, d)| *d);
+
+    for (i, j) in iter {
+        let d = boxes[i].distance(&boxes[j]);
+
+        if d > pairs.last().unwrap().2 {
+            continue;
+        }
+
+        pairs.pop();
+        let insert_idx = pairs.partition_point(|(_, _, dist)| dist < &d);
+        pairs.insert(insert_idx, (i, j, d));
+    }
+
+    pairs
+}
 
 pub fn part_one(input: &str) -> Option<usize> {
     let connections = if cfg!(test) {
@@ -124,8 +229,34 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(circuits[0].len() * circuits[1].len() * circuits[2].len())
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+#[cfg(test)]
+const DEFAULT_N: usize = 100;
+#[cfg(not(test))]
+const DEFAULT_N: usize = 5_000;
+
+pub fn part_two(input: &str) -> Option<u64> {
+    let connections = if cfg!(test) {
+        // when compiled as part of `cargo test`
+        20
+    } else {
+        // when compiled for `cargo run`, `cargo build`, etc.
+        1000
+    };
+
+    let boxes: Vec<Position> = input.lines().map(Position::from).collect();
+
+    // (start_idx, end_idx, distance)
+    let pairs: Vec<(usize, usize, u64)> = get_closest_pairs::<DEFAULT_N>(&boxes);
+
+    let mut circuits = Dsu::new(connections);
+
+    for (i, j, _) in pairs {
+        if circuits.add_pair(i, j) == connections {
+            return Some(boxes[i].x * boxes[j].x);
+        }
+    }
+
+    unreachable!()
 }
 
 #[cfg(test)]
@@ -141,6 +272,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(25272));
     }
 }

@@ -30,3 +30,6 @@ tinyjson = "2.5.1"
 # Solution dependencies
 glam = "0.30.9"
 pathfinding = "4.14.0"
+itertools = "0.14.0"
+aoc-utils = "0.5.0"
+atoi = "2.0.0"

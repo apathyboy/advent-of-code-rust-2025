@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{cmp::max, collections::HashSet};
 
 use glam::IVec2;
 
@@ -88,34 +88,6 @@ fn _fire_quantum_beam(beam: IVec2, max_height: i32, splitters: &HashSet<IVec2>, 
     //println!("Beams {}", beams);
 }
 
-fn fire_quantum_beam_iterative(start: IVec2, max_height: i32, splitters: &HashSet<IVec2>) -> usize {
-    let mut beam_count = 0usize;
-    let mut stack: Vec<IVec2> = Vec::new();
-
-    // initial beam
-    stack.push(start);
-
-    while let Some(mut pos) = stack.pop() {
-        // Simulate this beam’s path
-        for y in pos.y + 1..max_height {
-            pos.y = y;
-
-            if splitters.contains(&pos) {
-                // Spawn right branch (starts from this splitter row)
-                stack.push(IVec2::new(pos.x + 1, pos.y));
-
-                // Current beam deflects left
-                pos.x -= 1;
-            }
-        }
-
-        // This beam path is finished
-        beam_count += 1;
-    }
-
-    beam_count
-}
-
 pub fn part_one(input: &str) -> Option<u64> {
     let mut start = IVec2::ZERO;
     let mut splitters: Vec<IVec2> = Vec::new();
@@ -137,36 +109,39 @@ pub fn part_one(input: &str) -> Option<u64> {
 
     fire_beam(start, max_y + 1, &splitters, &mut beams, &mut splits);
 
-    //draw(input.lines().next()?.len(), max_y + 1, &beams, &splitters);
-
     Some(splits.len() as u64)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    /*
-    let mut start = IVec2::ZERO;
-    let mut splitters: HashSet<IVec2> = HashSet::new();
-    let mut max_y = 0;
+    let grid_height = input.lines().count();
+    let grid_width = input.lines().next().unwrap().len();
+    let mut dp: Vec<Vec<u64>> = Vec::new();
+    let mut default_col = Vec::with_capacity(grid_width);
+    default_col.resize(grid_width, 0);
+    dp.resize(grid_height, default_col);
 
     for (y, line) in input.lines().enumerate() {
-        for (x, c) in line.chars().enumerate() {
-            match c {
-                'S' => start = IVec2::new(x as i32, y as i32),
-                '^' => {
-                    splitters.insert(IVec2::new(x as i32, y as i32));
+        for (x, ch) in line.chars().enumerate() {
+            if ch == 'S' {
+                dp[y][x] = 1;
+                continue;
+            }
+
+            if ch == '.' && y as isize - 1 >= 0 {
+                dp[y][x] += dp[y - 1][x];
+                continue;
+            }
+
+            if ch == '^' {
+                for j in [-1_isize, 1_isize] {
+                    let new_col = (x as isize + j) as usize;
+                    dp[y][new_col] = max(dp[y - 1][x] + dp[y][new_col], dp[y][new_col]);
                 }
-                _ => {}
             }
         }
-
-        max_y = y;
     }
 
-    let beams = fire_quantum_beam_iterative(start, max_y as i32, &splitters);
-
-    Some(beams as u64)
-    */
-    None
+    Some(dp[grid_height - 1].iter().sum::<u64>())
 }
 
 #[cfg(test)]
@@ -182,6 +157,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(40));
     }
 }

@@ -34,14 +34,14 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 | [Day 4](./src/bin/04.rs) | `71.1µs` | `1.2ms` |
 | [Day 5](./src/bin/05.rs) | `99.2µs` | `27.8µs` |
 | [Day 6](./src/bin/06.rs) | `41.5µs` | `107.4µs` |
-| [Day 7](./src/bin/07.rs) | `4.3ms` | `-` |
-| [Day 8](./src/bin/08.rs) | `13.5ms` | `-` |
-| [Day 9](./src/bin/09.rs) | `2.5ms` | `-` |
-| [Day 10](./src/bin/10.rs) | `5.6ms` | `-` |
+| [Day 7](./src/bin/07.rs) | `4.3ms` | `35.0µs` |
+| [Day 8](./src/bin/08.rs) | `13.5ms` | `14.7ms` |
+| [Day 9](./src/bin/09.rs) | `2.4ms` | `21.8µs` |
+| [Day 10](./src/bin/10.rs) | `5.7ms` | `186.3ms` |
 | [Day 11](./src/bin/11.rs) | `135.2µs` | `174.8µs` |
 | [Day 12](./src/bin/12.rs) | `55.2µs` | `-` |
 
-**Total: 44.72ms**
+**Total: 245.77ms**
 <!--- benchmarking table --->
 
 *Benchmarks performed on a 2024 Macbook Pro M4 Pro, 24GB*
